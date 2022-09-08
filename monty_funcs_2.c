@@ -1,118 +1,77 @@
 #include "monty.h"
-
-
-
-void monty_add(stack_t **stack, unsigned int line_number);
-void monty_sub(stack_t **stack, unsigned int line_number);
-void monty_div(stack_t **stack, unsigned int line_number);
-void monty_mul(stack_t **stack, unsigned int line_number);
-void monty_mod(stack_t **stack, unsigned int line_number);
-
 /**
- * monty_add - Adds the top two values of a stack_t linked list
- * @stack: A pointer to the top mode node of a stack_t linked list
- * @line_number: The current working line number of a Monty bytecodes file
- *
- * Description: The result is stored in the second value node
+ * add_end_node - add node to front of doubly linked list
+ * @h: pointer to head of list
+ * @n: node data
+ * Return: 0 if success, -1 if failed
  */
-
-void monty_add(stack_t **stack, unsigned int line_number)
+int add_end_node(stack_t **h, int n)
 {
-	if ((*stack)->next == NULL || (*stack)->next->next == NULL)
-	{
-		set_op_tok_error(short_stack_error(line_number, "add"));
-		return;
-	}
+	stack_t *new;
 
-	(*stack)->next->next->n += (*stack)->next->n;
-	monty_pop(stack, line_number);
+	if (!h)
+		return (-1);
+
+	/* malloc and set new node data */
+	new = malloc(sizeof(struct stack_s));
+	if (!new)
+	{
+		printf("Error: malloc failed");
+		return (-1);
+	}
+	new->n = n;
+
+	/* account for empty linked list */
+	if (*h == NULL)
+	{
+		*h = new;
+		new->next = NULL;
+		new->prev = NULL;
+	}
+	else /* insert to front */
+	{
+		new->next = *h;
+		(*h)->prev = new;
+		*h = new;
+	}
+	return (0);
 }
-
 /**
- * monty_sub - Subtracts the second value from the top
- * @stack: A pointer to the top mode node of a stack_t linked list
- * @line_number: The current working line number of a Monty bytecodes file
- *
- * Description: The result is stored in the second value node
+ * delete_end_node - deletes node at end of doubly linked list
+ * @h: pointer to head of doubly linked list
  */
-void monty_sub(stack_t **stack, unsigned int line_number)
+void delete_end_node(stack_t **h)
 {
-	if ((*stack)->next == NULL || (*stack)->next->next == NULL)
-	{
-		set_op_tok_error(short_stack_error(line_number, "sub"));
-		return;
-	}
+	stack_t *del = NULL;
 
-	(*stack)->next->next->n -= (*stack)->next->n;
-	monty_pop(stack, line_number);
+	/* account for only one node in list */
+	del = *h;
+	if ((*h)->next == NULL)
+	{
+		*h = NULL;
+		free(del);
+	}
+	else /* else delete front, and link correctly */
+	{
+		*h = (*h)->next;
+		(*h)->prev = NULL;
+		free(del);
+	}
 }
-
 /**
- * monty_div - Divides the second value from the top
- * @stack: A pointer to the top mode node of a stack_t linked list
- * @line_number: The current working line number of a Monty bytecodes file
- *
- * Description: The result is stored in the second value node
+ * free_dlist - frees a doubly linked list with only int data, no strings
+ * @h: pointer to head of list
  */
-void monty_div(stack_t **stack, unsigned int line_number)
+void free_dlist(stack_t **h)
 {
-	if ((*stack)->next == NULL || (*stack)->next->next == NULL)
-	{
-		set_op_tok_error(short_stack_error(line_number, "div"));
+	/* return if empty list */
+	if (!h)
 		return;
-	}
 
-	if ((*stack)->next->n == 0)
+	while (*h && (*h)->next)
 	{
-		set_op_tok_error(div_error(line_number));
-		return;
+		*h = (*h)->next;
+		free((*h)->prev);
 	}
-
-	(*stack)->next->next->n /= (*stack)->next->n;
-	monty_pop(stack, line_number);
-}
-
-
-/**
- * monty_mul - Multiplies the second value from the top
- * @stack: A pointer to the top mode node of a stack_t linked list
- * @line_number: The current working line number of a Monty bytecodes file
- *
- * Description: The result is stored in the second value node
- */
-void monty_mul(stack_t **stack, unsigned int line_number)
-{
-	if ((*stack)->next == NULL || (*stack)->next->next == NULL)
-	{
-		set_op_tok_error(short_stack_error(line_number, "mul"));
-		return;
-	}
-
-	(*stack)->next->next->n *= (*stack)->next->n;
-	monty_pop(stack, line_number);
-}
-
-/**
- * monty_mod - Computes the modulus of the second value from the top
- * @stack: A pointer to the top mode node of a stack_t linked list
- * @line_number: The current working line number of a Monty bytecodes file
- *
- * Description: The result is stored in the second value node
- */
-void monty_mod(stack_t **stack, unsigned int line_number)
-{
-	if ((*stack)->next == NULL || (*stack)->next->next == NULL)
-	{
-		set_op_tok_error(short_stack_error(line_number, "mod"));
-		return;
-	}
-
-	if ((*stack)->next->n == 0)
-	{
-		set_op_tok_error(div_error(line_number));
-		return;
-	}
-
-	(*stack)->next->next->n %= (*stack)->next->n;
-	monty_pop(stack, line_number);
+	free(*h);
 }
