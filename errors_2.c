@@ -1,69 +1,77 @@
 #include "monty.h"
-
-int short_stack_error(unsigned int line_number, char *op);
-int div_error(unsigned int line_number);
-int pop_error(unsigned int line_number);
-int div_error(unsigned int line_number);
-int pchar_error(unsigned int line_number, char *message);
-
 /**
- * pop_error - Prints pop error messages for empty stacks.
- * @line_number: Line number in script where error occured.
- *
- * Return: (EXIT_FAILURE) always.
+ * add_end_node - add node to front of doubly linked list
+ * @h: pointer to head of list
+ * @n: node data
+ * Return: 0 if success, -1 if failed
  */
-int pop_error(unsigned int line_number)
+int add_end_node(stack_t **h, int n)
 {
-	fprintf(stderr, "L%u: can't pop an empty stack\n", line_number);
-	return (EXIT_FAILURE);
-}
+	stack_t *new;
 
+	if (!h)
+		return (-1);
+
+	/* malloc and set new node data */
+	new = malloc(sizeof(struct stack_s));
+	if (!new)
+	{
+		printf("Error: malloc failed");
+		return (-1);
+	}
+	new->n = n;
+
+	/* account for empty linked list */
+	if (*h == NULL)
+	{
+		*h = new;
+		new->next = NULL;
+		new->prev = NULL;
+	}
+	else /* insert to front */
+	{
+		new->next = *h;
+		(*h)->prev = new;
+		*h = new;
+	}
+	return (0);
+}
 /**
- * pint_error - Prints pint error messages for empty stacks.
- * @line_number: Line number in Monty bytecodes file where error occurred.
- *
- * Return: (EXIT_FAILURE) always.
+ * delete_end_node - deletes node at end of doubly linked list
+ * @h: pointer to head of doubly linked list
  */
-int pint_error(unsigned int line_number)
+void delete_end_node(stack_t **h)
 {
-	fprintf(stderr, "L%d: can't pint, stack empty\n", line_number);
-	return (EXIT_FAILURE);
-}
+	stack_t *del = NULL;
 
+	/* account for only one node in list */
+	del = *h;
+	if ((*h)->next == NULL)
+	{
+		*h = NULL;
+		free(del);
+	}
+	else /* else delete front, and link correctly */
+	{
+		*h = (*h)->next;
+		(*h)->prev = NULL;
+		free(del);
+	}
+}
 /**
- * short_stack_error - Prints monty math function error messages
- * @line_number: Line number in Monty bytecodes file where error occurred.
- * @op: Operation where the error occurred.
- *
- * Return: (EXIT_FAILURE) always
+ * free_dlist - frees a doubly linked list with only int data, no strings
+ * @h: pointer to head of list
  */
-int short_stack_error(unsigned int line_number, char *op)
+void free_dlist(stack_t **h)
 {
-	fprintf(stderr, "L%u: can't %s, stack too short\n", line_number, op);
-	return (EXIT_FAILURE);
-}
+	/* return if empty list */
+	if (!h)
+		return;
 
-/**
- * div_error - Prints division error messages for division by 0.
- * @line_number: Line number in Monty bytecodes file where error occurred.
- * Return: (EXIT_FAILURE) always.
- */
-int div_error(unsigned int line_number)
-{
-	fprintf(stderr, "L%u: division by zero\n", line_number);
-	return (EXIT_FAILURE);
+	while (*h && (*h)->next)
+	{
+		*h = (*h)->next;
+		free((*h)->prev);
+	}
+	free(*h);
 }
-
-/**
- * pchar_error - Prints pchar error messages for empty stacks
- * @line_number: Line number in Monty bytecodes file where error occurred
- * @message: The corresponding error message to print
- *
- * Return: (EXIT_FAILURE) always
- */
-int pchar_error(unsigned int line_number, char *message)
-{
-	fprintf(stderr, "L%u: can't pchar, %s\n", line_number, message);
-	return (EXIT_FAILURE);
-}
-
