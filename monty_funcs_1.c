@@ -1,127 +1,77 @@
 #include "monty.h"
-
-
-void monty_push(stack_t **stack, unsigned int line_number);
-void monty_pall(stack_t **stack, unsigned int line_number);
-void monty_pint(stack_t **stack, unsigned int line_number);
-void monty_pop(stack_t **stack, unsigned int line_number);
-void monty_swap(stack_t **stack, unsigned int line_number);
-
 /**
- * monty_push - Pushes a value to a stack_t linked list.
- * @stack: A pointer to the top mode node of a stack_t linked list.
- * @line_number: The current working line number of a Monty bytecodes file
+ * add_end_node - add node to front of doubly linked list
+ * @h: pointer to head of list
+ * @n: node data
+ * Return: 0 if success, -1 if failed
  */
-void monty_push(stack_t **stack, unsigned int line_number)
+int add_end_node(stack_t **h, int n)
 {
-	stack_t *tmp, *new;
-	int i;
+	stack_t *new;
 
-	new = malloc(sizeof(stack_t));
-	if (new == NULL)
-	{
-		set_op_tok_error(malloc_error());
-		return;
-	}
+	if (!h)
+		return (-1);
 
-	if (op_toks[1] == NULL)
+	/* malloc and set new node data */
+	new = malloc(sizeof(struct stack_s));
+	if (!new)
 	{
-		set_op_tok_error(no_int_error(line_number));
-		return;
+		printf("Error: malloc failed");
+		return (-1);
 	}
+	new->n = n;
 
-	for (i = 0; op_toks[1][i]; i++)
+	/* account for empty linked list */
+	if (*h == NULL)
 	{
-		f (op_toks[1][i] == '-' && i == 0)
-			continue;
-		if (op_toks[1][i] < '0' || op_toks[1][i] > '9')
-		{
-			set_op_tok_error(no_int_error(line_number));
-			continue;
-		}
-	}
-	new->n = atoi(op_toks[1]);
-
-	if (check_mode(*stack) == STACK)
-	{
-		tmp = (*stack)->next;
-		new->prev = *stack;
-		new->next = tmp;
-		if (tmp)
-			tmp->prev = new;
-		(*stack)->next = new;
-	}
-	else
-	{
-		tmp = *stack;
-		while (tmp->next)
-			tmp = tmp->next;
-		new->prev = tmp;
+		*h = new;
 		new->next = NULL;
-		tmp->next = new;
+		new->prev = NULL;
+	}
+	else /* insert to front */
+	{
+		new->next = *h;
+		(*h)->prev = new;
+		*h = new;
+	}
+	return (0);
+}
+/**
+ * delete_end_node - deletes node at end of doubly linked list
+ * @h: pointer to head of doubly linked list
+ */
+void delete_end_node(stack_t **h)
+{
+	stack_t *del = NULL;
+
+	/* account for only one node in list */
+	del = *h;
+	if ((*h)->next == NULL)
+	{
+		*h = NULL;
+		free(del);
+	}
+	else /* else delete front, and link correctly */
+	{
+		*h = (*h)->next;
+		(*h)->prev = NULL;
+		free(del);
 	}
 }
-
 /**
- * monty_pall - Prints the values of a stack_t linked list.
- * @stack: A pointer to the top mode node of a stack_t linked list.
- * @line_number: The current working line number of a Monty bytecodes file.
+ * free_dlist - frees a doubly linked list with only int data, no strings
+ * @h: pointer to head of list
  */
-void monty_pall(stack_t **stack, unsigned int line_number)
+void free_dlist(stack_t **h)
 {
-	stack_t *tmp = (*stack)->next;
-
-	while (tmp)
-	{
-		printf("%d\n", tmp->n);
-		tmp = tmp->next;
-	}
-	(void)line_number;
-}
-
-/**
- * monty_pint - Prints the top value of a stack_t linked list
- * @stack: A pointer to the top mode node of a stack_t linked list
- * @line_number: The current working line number of a Monty bytecodes file
- */
-void monty_pint(stack_t **stack, unsigned int line_number)
-{
-	stack_t *next = NULL;
-
-	if ((*stack)->next == NULL)
-	{
-		set_op_tok_error(pop_error(line_number));
+	/* return if empty list */
+	if (!h)
 		return;
-	}
 
-	next = (*stack)->next->next;
-	free((*stack)->next);
-	if (next)
-		next->prev = *stack;
-	(*stack)->next = next;
-}
-
-/**
- * monty_swap - Swaps the top two value elements of a stack_t linked list
- * @stack: A pointer to the top mode node of a stack_t linked list
- * @line_number: The current working line number of a Monty bytecodes file
- */
-void monty_swap(stack_t **stack, unsigned int line_number)
-{
-	stack_t *tmp;
-
-	if ((*stack)->next == NULL || (*stack)->next->next == NULL)
+	while (*h && (*h)->next)
 	{
-		set_op_tok_error(short_stack_error(line_number, "swap"));
-		return;
+		*h = (*h)->next;
+		free((*h)->prev);
 	}
-
-	tmp = (*stack)->next->next;
-	(*stack)->next->next = tmp->next;
-	(*stack)->next->prev = tmp;
-	if (tmp->next)
-		tmp->next->prev = (*stack)->next;
-	tmp->next = (*stack)->next;
-	tmp->prev = *stack;
-	(*stack)->next = tmp;
+	free(*h);
 }
