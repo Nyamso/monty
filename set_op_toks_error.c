@@ -1,36 +1,36 @@
 #include "monty.h"
 
 /**
- * set_op_tok_error - Sets last element of op_toks to be an error code.
- * @error_code: Integer to store as a string in op_toks.
+ * get_op_func - function to select correct operation function
+ * @token1: 1st bytecode input (opcode)
+ * Return: pointer to correct operation function
  */
-void set_op_tok_error(int error_code)
+void (*get_op_func(char *token1))(stack_t **stack, unsigned int line_number)
 {
-	int toks_len = 0, i = 0;
-	char *exit_str = NULL;
-	char **new_toks = NULL;
+	instruction_t instruction_s[] = {
+		{"pop", pop},
+		{"pall", pall},
+		{"pint", pint},
+		{"swap", swap},
+		{"add", _add},
+		{"sub", _sub},
+		{"mul", _mul},
+		{"div", _div},
+		{"mod", _mod},
+		{"pchar", pchar},
+		{"pstr", pstr},
+		{"nop", nop},
+		{"rotl", rotl},
+		{"rotr", rotr},
+		{NULL, NULL}
+	};
+	int i = 0;
 
-	toks_len = token_arr_len();
-	new_toks = malloc(sizeof(char *) * (toks_len + 2));
-	if (!op_toks)
+	while (instruction_s[i].f != NULL)
 	{
-		malloc_error();
-		return;
-	}
-	while (i < toks_len)
-	{
-		new_toks[i] = op_toks[i];
+		if (strcmp(token1, instruction_s[i].opcode) == 0)
+			return (instruction_s[i].f);
 		i++;
 	}
-	exit_str = get_int(error_code);
-	if (!exit_str)
-	{
-		free(new_toks);
-		malloc_error();
-		return;
-	}
-	new_toks[i++] = exit_str;
-	new_toks[i] = NULL;
-	free(op_toks);
-	op_toks = new_toks;
+	return (NULL);
 }
